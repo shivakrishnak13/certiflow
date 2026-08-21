@@ -6,5 +6,6 @@ export class AuthRouter {
   constructor() {
     this.router = Router();
     this.router.post("/register", AuthController.register);
+    this.router.post("/login", AuthController.login);
   }
 }

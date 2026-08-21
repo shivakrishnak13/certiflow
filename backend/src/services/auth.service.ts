@@ -1,5 +1,5 @@
 import { User } from "@/models/user";
-import { HashHelper } from "@/utils/configuration/helpers/hashHelper";
+import { HashHelper } from "@/utils/helpers/hashHelper";
 
 export class AuthService {
   static async findUserByEmail(email: string) {
@@ -15,5 +15,18 @@ export class AuthService {
 
     const user = new User({ email, password: hashedPassword, name });
     return await user.save();
+  }
+
+  static async loginUser(email: string, password: string) {
+    const user = await this.findUserByEmail(email);
+    if (!user) {
+      throw new Error("Invalid email or password");
+    }
+
+    const isPasswordValid = await HashHelper.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new Error("Invalid email or password");
+    }
+    return user;
   }
 }

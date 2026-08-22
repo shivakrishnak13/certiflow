@@ -1,3 +1,4 @@
+import { ENV } from "@/types/enums/enums";
 import { z } from "zod";
 
 // Zod schema for environment variables
@@ -8,8 +9,11 @@ const envSchema = z.object({
   // Server Configuration
   PORT: z.string().regex(/^\d+$/).default("8000"),
   JWT_SECRET: z.string().min(8),
+  NODE_ENV: z.enum(ENV).default(ENV.DEVELOPMENT),
 
   ALLOWED_ORIGINS: z.string().nonempty(),
+
+  COOKIE_DOMAIN_NAME: z.string(),
 });
 
 // Parse and validate environment variables

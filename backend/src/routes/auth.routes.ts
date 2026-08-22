@@ -23,7 +23,7 @@ export class AuthRouter {
         email: "required|email",
         password: "required",
       }),
-      catchAsync(AuthController.login)
+      catchAsync(AuthController.login),
     );
   }
 }

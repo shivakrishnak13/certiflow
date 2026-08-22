@@ -2,6 +2,7 @@ import express, { Application } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import { corsOptions } from "@/utils/configuration/corsOptions";
+import { api } from "@/routes";
 
 export const createApp = (): Application => {
   try {
@@ -16,6 +17,8 @@ export const createApp = (): Application => {
     app.use(helmet());
     app.use(cors(corsOptions));
     app.use(express.json());
+
+    app.use("/api", api);
 
     return app;
   } catch (error) {

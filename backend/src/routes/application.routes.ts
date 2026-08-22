@@ -10,6 +10,7 @@ export class ApplicationRouter {
         this.router.post('/', catchAsync(ApplicationController.createApplication));
         this.router.get('/', catchAsync(ApplicationController.getApplications));
         this.router.get('/:id', catchAsync(ApplicationController.getApplicationById));
+        this.router.patch('/:id', catchAsync(ApplicationController.updateApplication));
 
     }
 }

@@ -1,3 +1,4 @@
+import { DOCUMENT_TYPE } from "@/types/enums/enums";
 import z from "zod";
 
 const updateApplicationSchema = z.object({
@@ -33,7 +34,15 @@ const updateApplicationSchema = z.object({
 
 type UpdateApplication = z.infer<typeof updateApplicationSchema>;
 
+const documentUploadSchema = z.object({
+  documentType: z.enum(DOCUMENT_TYPE, {
+    message: "Document type must be ID_PROOF or DEGREE_CERTIFICATE",
+  }),
+});
+
+
 export {
   updateApplicationSchema,
   UpdateApplication,
+  documentUploadSchema,
 };

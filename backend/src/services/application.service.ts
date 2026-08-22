@@ -1,5 +1,5 @@
 import { Application } from "@/models/application";
-import { APPLICATION_STATUS } from "@/types/enums/enums";
+import { APPLICATION_STATUS, DOCUMENT_TYPE } from "@/types/enums/enums";
 import { UpdateApplication } from "@/utils/zod/application";
 
 export class ApplicationService {
@@ -30,9 +30,26 @@ export class ApplicationService {
         $set: data,
       },
       {
-        new: true,
+        returnDocument: "after",
         runValidators: true,
       },
     );
+  }
+
+  static async uploadDocument(
+    applicationId: string,
+    userId: string,
+    documentType: DOCUMENT_TYPE,
+    file: Express.Multer.File,
+  ) {
+    const application = await Application.findOne({
+      _id: applicationId,
+      userId,
+      status: APPLICATION_STATUS.DRAFT,
+    });
+
+    if (!application) return null;
+
+    console.log(application)
   }
 }

@@ -1,7 +1,10 @@
 import { ApplicationService } from "@/services/application.service";
 import { JwtUserPayload } from "@/types/express";
 import { ErrorResponse, SuccessResponse } from "@/utils/helpers/apiResponse";
-import { updateApplicationSchema } from "@/utils/zod/application";
+import {
+  documentUploadSchema,
+  updateApplicationSchema,
+} from "@/utils/zod/application";
 import { Request, Response, NextFunction } from "express";
 import status from "http-status";
 
@@ -82,6 +85,39 @@ export class ApplicationController {
     return SuccessResponse(res, status.OK, {
       message: "Application updated successfully.",
       data: updatedApplication,
+    });
+  }
+
+  static async uploadDocument(req: Request, res: Response) {
+    const { id } = req.params as { id: string };
+    const { id: userId } = req.user as JwtUserPayload;
+    const parsedData = documentUploadSchema.safeParse(req.body);
+
+    if (!parsedData.success || !req.file) {
+      return ErrorResponse(res, status.BAD_REQUEST, {
+        message: !parsedData.success
+          ? "Invalid document type."
+          : "A PDF file is required.",
+        errors: !parsedData.success ? parsedData.error.flatten() : {},
+      });
+    }
+
+    const document = await ApplicationService.uploadDocument(
+      id,
+      userId,
+      parsedData.data.documentType,
+      req.file,
+    );
+
+    if (!document) {
+      return ErrorResponse(res, status.NOT_FOUND, {
+        message: "Application not found.",
+      });
+    }
+
+    return SuccessResponse(res, status.OK, {
+      message: "Document uploaded successfully.",
+      data: document,
     });
   }
 }

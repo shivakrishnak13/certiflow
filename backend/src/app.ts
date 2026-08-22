@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import { corsOptions } from "@/utils/configuration/corsOptions";
 import { api } from "@/routes";
+import cookieParser from "cookie-parser";
 
 export const createApp = (): Application => {
   try {
@@ -17,6 +18,8 @@ export const createApp = (): Application => {
     app.use(helmet());
     app.use(cors(corsOptions));
     app.use(express.json());
+
+    app.use(cookieParser());
 
     app.use("/api", api);
 

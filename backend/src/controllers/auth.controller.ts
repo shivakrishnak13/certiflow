@@ -1,9 +1,10 @@
 import { AuthService } from "@/services/auth.service";
+import { COOKIE_NAME } from "@/types/enums/enums";
+import { cookieOptions } from "@/utils/configuration/cookieOptions";
 import { ErrorResponse, SuccessResponse } from "@/utils/helpers/apiResponse";
 import { getJWTToken } from "@/utils/helpers/commonHelpers";
 import { NextFunction, Request, Response } from "express";
 import status from "http-status";
-import { Validator } from "node-input-validator";
 
 export class AuthController {
   static async register(req: Request, res: Response, next: NextFunction) {
@@ -25,9 +26,11 @@ export class AuthController {
       name: user.name,
     };
 
+    res.cookie(COOKIE_NAME.TOKEN, token, cookieOptions);
+
     return SuccessResponse(res, status.OK, {
       message: "Success.",
-      data: { user: userResponse, token },
+      data: { user: userResponse },
     });
   }
 
@@ -42,9 +45,11 @@ export class AuthController {
       name: user.name,
     };
 
+    res.cookie(COOKIE_NAME.TOKEN, token, cookieOptions);
+
     return SuccessResponse(res, status.OK, {
       message: "Success.",
-      data: { user: userResponse, token },
+      data: { user: userResponse },
     });
   }
 }

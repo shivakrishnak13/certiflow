@@ -24,10 +24,10 @@ export class AuthMiddleware {
 
       // attach payload
       req.user = {
-        id: decoded.data._id || decoded.id,
+        id: decoded.data.id || decoded.id,
         email: decoded.data.email || decoded.email,
       };
-      console.log("Decoded Token:", decoded);
+      
       return next();
     } catch (error) {
 

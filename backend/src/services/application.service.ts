@@ -163,7 +163,10 @@ export class ApplicationService {
             status: APPLICATION_STATUS.SUBMITTED,
             currentStep: 3,
             referenceNumber,
-            certificateS3Key,
+            certificate: {
+              s3Key: certificateS3Key,
+              generatedAt: new Date(),
+            },
             submittedAt: new Date(),
           },
         },
@@ -186,5 +189,29 @@ export class ApplicationService {
       await S3Service.deleteFile(certificateS3Key).catch(() => undefined);
       throw error;
     }
+  }
+
+  static async getCertificateDownloadUrl(
+    applicationId: string,
+    userId: string,
+  ) {
+    const application = await Application.findOne({
+      _id: applicationId,
+      userId,
+      status: APPLICATION_STATUS.SUBMITTED,
+    }).lean();
+
+    if (!application || !application.certificate.s3Key) {
+      return null;
+    }
+
+    const url = await S3Service.getSignedDownloadUrl(
+      application.certificate.s3Key,
+    );
+
+    return {
+      url,
+      fileName: `provisional-certificate-${application.referenceNumber}.pdf`,
+    };
   }
 }

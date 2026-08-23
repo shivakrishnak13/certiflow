@@ -169,4 +169,25 @@ export class ApplicationController {
       },
     });
   }
+
+  static async downloadCertificate(req: Request, res: Response) {
+    const { id: applicationId } = req.params as { id: string };
+    const { id: userId } = req.user as JwtUserPayload;
+
+    const result = await ApplicationService.getCertificateDownloadUrl(
+      applicationId,
+      userId,
+    );
+
+    if (!result) {
+      return ErrorResponse(res, status.NOT_FOUND, {
+        message: "Certificate not found.",
+      });
+    }
+
+    return SuccessResponse(res, status.OK, {
+      message: "Certificate download URL generated successfully.",
+      data: result,
+    });
+  }
 }

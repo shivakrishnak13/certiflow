@@ -34,5 +34,10 @@ export class ApplicationRouter {
       "/:id/submit",
       catchAsync(ApplicationController.submitApplication),
     );
+
+    this.router.get(
+      "/:id/certificate/download",
+      catchAsync(ApplicationController.downloadCertificate),
+    );
   }
 }

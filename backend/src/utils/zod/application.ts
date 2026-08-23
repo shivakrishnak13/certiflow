@@ -1,7 +1,7 @@
 import { DOCUMENT_TYPE } from "@/types/enums/enums";
 import z from "zod";
 
-const updateApplicationSchema = z.object({
+const applicationSchema = z.object({
   applicant: z.object({
     fullName: z
       .string({ message: "Full name is required" })
@@ -14,6 +14,8 @@ const updateApplicationSchema = z.object({
     registrationNumber: z
       .string({ message: "Registration number is required" })
       .min(1, "Registration number is required"),
+    degree: z.string().min(1),
+    specialization: z.string().min(1),
     address: z.object({
       line1: z
         .string({ message: "Address line 1 is required" })
@@ -32,7 +34,7 @@ const updateApplicationSchema = z.object({
   }),
 });
 
-type UpdateApplication = z.infer<typeof updateApplicationSchema>;
+type ApplicationType = z.infer<typeof applicationSchema>;
 
 const documentUploadSchema = z.object({
   documentType: z.enum(DOCUMENT_TYPE, {
@@ -40,9 +42,4 @@ const documentUploadSchema = z.object({
   }),
 });
 
-
-export {
-  updateApplicationSchema,
-  UpdateApplication,
-  documentUploadSchema,
-};
+export { applicationSchema, ApplicationType, documentUploadSchema };

@@ -5,8 +5,8 @@ import { REQUIRED_DOCUMENT_TYPES } from "@/utils/constants";
 import { getObjectId } from "@/utils/helpers/commonHelpers";
 import { generateReferenceNumber } from "@/utils/helpers/referenceNumber";
 import {
-  UpdateApplication,
-  updateApplicationSchema,
+  ApplicationType,
+  applicationSchema,
 } from "@/utils/zod/application";
 
 export class ApplicationService {
@@ -71,10 +71,10 @@ export class ApplicationService {
     };
   }
 
-  static async updateApplication(
+  static async ApplicationType(
     applicationId: string,
     userId: string,
-    data: UpdateApplication,
+    data: ApplicationType,
   ) {
     return Application.findOneAndUpdate(
       {
@@ -104,7 +104,7 @@ export class ApplicationService {
     }
 
     const applicant = application.applicant;
-    const parsedData = updateApplicationSchema.safeParse({ applicant });
+    const parsedData = applicationSchema.safeParse({ applicant });
 
     if (!parsedData.success) {
       throw new Error(`Invalid applicant data: ${parsedData.error.message}`);

@@ -16,7 +16,7 @@ export class ApplicationRouter {
     );
     this.router.patch(
       "/:id",
-      catchAsync(ApplicationController.updateApplication),
+      catchAsync(ApplicationController.ApplicationType),
     );
 
     this.router.post(

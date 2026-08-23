@@ -6,6 +6,7 @@ import { generateCertificatePdf } from "@/utils/helpers/certificate";
 import { getObjectId } from "@/utils/helpers/commonHelpers";
 import { generateReferenceNumber } from "@/utils/helpers/referenceNumber";
 import { ApplicationType, applicationSchema } from "@/utils/zod/application";
+import { S3Service } from "@/services/s3.service";
 
 export class ApplicationService {
   static async createApplication(userId: string) {
@@ -141,9 +142,49 @@ export class ApplicationService {
       address: applicant.address,
     });
 
-    return {
-      buffer: certificateBuffer,
-      fileName: `certificate-${referenceNumber}.pdf`,
-    };
+    // upload certificate to S3
+    const certificateS3Key = `applications/${applicationId}/certificate/${referenceNumber}.pdf`;
+
+    try {
+      await S3Service.uploadFile(
+        certificateS3Key,
+        certificateBuffer,
+        "application/pdf",
+      );
+
+      const submittedApplication = await Application.findOneAndUpdate(
+        {
+          _id: applicationId,
+          userId,
+          status: APPLICATION_STATUS.DRAFT,
+        },
+        {
+          $set: {
+            status: APPLICATION_STATUS.SUBMITTED,
+            currentStep: 3,
+            referenceNumber,
+            certificateS3Key,
+            submittedAt: new Date(),
+          },
+        },
+        {
+          new: true,
+        },
+      );
+
+      if (!submittedApplication) {
+        await S3Service.deleteFile(certificateS3Key);
+
+        throw new Error("Application could not be submitted.");
+      }
+
+      return {
+        application: submittedApplication,
+        referenceNumber,
+      };
+    } catch (error) {
+      await S3Service.deleteFile(certificateS3Key).catch(() => undefined);
+      throw error;
+    }
   }
 }

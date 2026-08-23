@@ -159,13 +159,14 @@ export class ApplicationController {
       });
     }
 
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename="${result.fileName}"`,
-    );
-    res.setHeader("Content-Length", result.buffer.length);
-
-    return res.status(status.OK).send(result.buffer);
+    return SuccessResponse(res, status.OK, {
+      message: "Application submitted successfully.",
+      data: {
+        applicationId: result.application._id,
+        status: result.application.status,
+        referenceNumber: result.referenceNumber,
+        submittedAt: result.application.submittedAt,
+      },
+    });
   }
 }

@@ -2,8 +2,8 @@ import { Application } from "@/models/application";
 import { UserDocument } from "@/models/document";
 import { APPLICATION_STATUS } from "@/types/enums/enums";
 import { REQUIRED_DOCUMENT_TYPES } from "@/utils/constants";
-import { SuccessResponse } from "@/utils/helpers/apiResponse";
 import { getObjectId } from "@/utils/helpers/commonHelpers";
+import { generateReferenceNumber } from "@/utils/helpers/referenceNumber";
 import {
   UpdateApplication,
   updateApplicationSchema,
@@ -128,6 +128,9 @@ export class ApplicationService {
       );
     }
 
-    return true
+    // generate reference number
+    const referenceNumber = generateReferenceNumber();
+    console.log({ referenceNumber })
+    return false;
   }
 }

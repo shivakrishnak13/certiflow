@@ -1,4 +1,5 @@
 import { ApplicationService } from "@/services/application.service";
+import { DocumentService } from "@/services/document.service";
 import { JwtUserPayload } from "@/types/express";
 import { ErrorResponse, SuccessResponse } from "@/utils/helpers/apiResponse";
 import {
@@ -102,7 +103,7 @@ export class ApplicationController {
       });
     }
 
-    const document = await ApplicationService.uploadDocument(
+    const document = await DocumentService.uploadDocument(
       id,
       userId,
       parsedData.data.documentType,

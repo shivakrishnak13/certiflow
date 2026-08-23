@@ -59,10 +59,20 @@ const DocumentSchema = new mongoose.Schema<IDocumentDocument>(
     mimeType: {
       type: String,
       required: true,
-    }
+    },
   },
   {
     timestamps: true,
+  },
+);
+
+DocumentSchema.index(
+  {
+    applicationId: 1,
+    type: 1,
+  },
+  {
+    unique: true,
   },
 );
 

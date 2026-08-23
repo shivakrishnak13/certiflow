@@ -104,4 +104,38 @@ export class DocumentService {
       throw error;
     }
   }
+
+  static async getDocument(
+    applicationId: string,
+    userId: string,
+    documentId: string,
+  ) {
+    const document = await UserDocument.findOne({
+      _id: documentId,
+      applicationId,
+      userId,
+    });
+
+    if (!document) {
+      return null;
+    }
+
+    const formattedDocument = {
+      id: document._id.toString(),
+      type: document.type,
+      originalName: document.originalName,
+      size: document.size,
+    };
+
+    try {
+      const url = await S3Service.getSignedDownloadUrl(document.s3Key);
+
+      return {
+        document: formattedDocument,
+        url,
+      };
+    } catch (error) {
+      throw new Error("Unable to retrieve file download link at this time.");
+    }
+  }
 }

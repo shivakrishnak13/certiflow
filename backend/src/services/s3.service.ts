@@ -1,4 +1,8 @@
-import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import {
+  DeleteObjectCommand,
+  GetObjectCommand,
+  PutObjectCommand,
+} from "@aws-sdk/client-s3";
 import { S3_BUCKET_NAME, s3Client } from "@/config/s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -26,5 +30,16 @@ export class S3Service {
     });
 
     await s3Client.send(command);
+  }
+
+  static async getSignedDownloadUrl(key: string) {
+    const command = new GetObjectCommand({
+      Bucket: S3_BUCKET_NAME,
+      Key: key,
+    });
+
+    return getSignedUrl(s3Client, command, {
+      expiresIn: 60 * 5,
+    });
   }
 }

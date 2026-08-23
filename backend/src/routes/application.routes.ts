@@ -24,5 +24,10 @@ export class ApplicationRouter {
       uploadDocument,
       catchAsync(ApplicationController.uploadDocument),
     );
+
+    this.router.get(
+      "/:id/documents/:documentId/view",
+      catchAsync(ApplicationController.getDocument),
+    );
   }
 }

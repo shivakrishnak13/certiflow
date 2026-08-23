@@ -1,8 +1,13 @@
 import { Application } from "@/models/application";
 import { UserDocument } from "@/models/document";
 import { APPLICATION_STATUS } from "@/types/enums/enums";
+import { REQUIRED_DOCUMENT_TYPES } from "@/utils/constants";
 import { getObjectId } from "@/utils/helpers/commonHelpers";
-import { UpdateApplication } from "@/utils/zod/application";
+import { generateReferenceNumber } from "@/utils/helpers/referenceNumber";
+import {
+  ApplicationType,
+  applicationSchema,
+} from "@/utils/zod/application";
 
 export class ApplicationService {
   static async createApplication(userId: string) {
@@ -66,10 +71,10 @@ export class ApplicationService {
     };
   }
 
-  static async updateApplication(
+  static async ApplicationType(
     applicationId: string,
     userId: string,
-    data: UpdateApplication,
+    data: ApplicationType,
   ) {
     return Application.findOneAndUpdate(
       {
@@ -85,5 +90,47 @@ export class ApplicationService {
         runValidators: true,
       },
     );
+  }
+
+  static async submitApplication(applicationId: string, userId: string) {
+    const application = await Application.findOne({
+      _id: applicationId,
+      userId,
+      status: APPLICATION_STATUS.DRAFT,
+    });
+
+    if (!application) {
+      return null;
+    }
+
+    const applicant = application.applicant;
+    const parsedData = applicationSchema.safeParse({ applicant });
+
+    if (!parsedData.success) {
+      throw new Error(`Invalid applicant data: ${parsedData.error.message}`);
+    }
+
+    const documents = await UserDocument.find({
+      applicationId,
+      userId,
+    });
+
+    // validate required documents
+    const uploadedTypes = new Set(documents.map((document) => document.type));
+
+    const missingDocuments = REQUIRED_DOCUMENT_TYPES.filter(
+      (requiredType) => !uploadedTypes.has(requiredType),
+    );
+
+    if (missingDocuments.length > 0) {
+      throw new Error(
+        `Missing required documents: ${missingDocuments.join(", ")}`,
+      );
+    }
+
+    // generate reference number
+    const referenceNumber = generateReferenceNumber();
+    console.log({ referenceNumber })
+    return false;
   }
 }

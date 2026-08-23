@@ -16,7 +16,7 @@ export class ApplicationRouter {
     );
     this.router.patch(
       "/:id",
-      catchAsync(ApplicationController.updateApplication),
+      catchAsync(ApplicationController.ApplicationType),
     );
 
     this.router.post(
@@ -28,6 +28,11 @@ export class ApplicationRouter {
     this.router.get(
       "/:id/documents/:documentId/view",
       catchAsync(ApplicationController.getDocument),
+    );
+
+    this.router.post(
+      "/:id/submit",
+      catchAsync(ApplicationController.submitApplication),
     );
   }
 }

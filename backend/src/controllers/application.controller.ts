@@ -4,7 +4,7 @@ import { JwtUserPayload } from "@/types/express";
 import { ErrorResponse, SuccessResponse } from "@/utils/helpers/apiResponse";
 import {
   documentUploadSchema,
-  updateApplicationSchema,
+  applicationSchema,
 } from "@/utils/zod/application";
 import { Request, Response, NextFunction } from "express";
 import status from "http-status";
@@ -59,14 +59,14 @@ export class ApplicationController {
     });
   }
 
-  static async updateApplication(
+  static async ApplicationType(
     req: Request,
     res: Response,
     next: NextFunction,
   ) {
     const { id } = req.params as { id: string };
     const { id: userId } = req.user as JwtUserPayload;
-    const parsedData = updateApplicationSchema.safeParse(req.body);
+    const parsedData = applicationSchema.safeParse(req.body);
 
     if (!parsedData.success) {
       return ErrorResponse(res, status.BAD_REQUEST, {
@@ -75,7 +75,7 @@ export class ApplicationController {
       });
     }
 
-    const updatedApplication = await ApplicationService.updateApplication(
+    const updatedApplication = await ApplicationService.ApplicationType(
       id,
       userId,
       parsedData.data,
@@ -141,6 +141,27 @@ export class ApplicationController {
     return SuccessResponse(res, status.OK, {
       message: "Document uploaded successfully.",
       data: document,
+    });
+  }
+
+  static async submitApplication(req: Request, res: Response) {
+    const { id: applicationId } = req.params as { id: string };
+    const { id: userId } = req.user as JwtUserPayload;
+
+    const result = await ApplicationService.submitApplication(
+      applicationId,
+      userId,
+    );
+
+    if (!result) {
+      return ErrorResponse(res, status.NOT_FOUND, {
+        message: "Application not found.",
+      });
+    }
+
+    return SuccessResponse(res, status.OK, {
+      message: "Application submitted successfully.",
+      data: result,
     });
   }
 }

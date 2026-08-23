@@ -10,6 +10,8 @@ interface IApplication {
     fullName: string;
     dateOfBirth: Date;
     registrationNumber: string;
+    degree: string;
+    specialization: string;
     address: {
       line1: string;
       line2?: string;
@@ -60,6 +62,12 @@ const ApplicationSchema = new mongoose.Schema<IApplicationDocument>(
       },
       registrationNumber: {
         type: String,
+      },
+      degree: {
+        type: String,
+      },
+      specialization: {
+        type: String
       },
       address: {
         line1: {

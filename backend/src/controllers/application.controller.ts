@@ -159,9 +159,13 @@ export class ApplicationController {
       });
     }
 
-    return SuccessResponse(res, status.OK, {
-      message: "Application submitted successfully.",
-      data: result,
-    });
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${result.fileName}"`,
+    );
+    res.setHeader("Content-Length", result.buffer.length);
+
+    return res.status(status.OK).send(result.buffer);
   }
 }

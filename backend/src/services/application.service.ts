@@ -2,12 +2,10 @@ import { Application } from "@/models/application";
 import { UserDocument } from "@/models/document";
 import { APPLICATION_STATUS } from "@/types/enums/enums";
 import { REQUIRED_DOCUMENT_TYPES } from "@/utils/constants";
+import { generateCertificatePdf } from "@/utils/helpers/certificate";
 import { getObjectId } from "@/utils/helpers/commonHelpers";
 import { generateReferenceNumber } from "@/utils/helpers/referenceNumber";
-import {
-  ApplicationType,
-  applicationSchema,
-} from "@/utils/zod/application";
+import { ApplicationType, applicationSchema } from "@/utils/zod/application";
 
 export class ApplicationService {
   static async createApplication(userId: string) {
@@ -130,7 +128,22 @@ export class ApplicationService {
 
     // generate reference number
     const referenceNumber = generateReferenceNumber();
-    console.log({ referenceNumber })
-    return false;
+    console.log({ referenceNumber });
+
+    // generate certificate PDF
+    const certificateBuffer = await generateCertificatePdf({
+      referenceNumber,
+      fullName: applicant.fullName,
+      degree: applicant.degree,
+      specialization: applicant.specialization,
+      dateOfBirth: applicant.dateOfBirth,
+      registrationNumber: applicant.registrationNumber,
+      address: applicant.address,
+    });
+
+    return {
+      buffer: certificateBuffer,
+      fileName: `certificate-${referenceNumber}.pdf`,
+    };
   }
 }

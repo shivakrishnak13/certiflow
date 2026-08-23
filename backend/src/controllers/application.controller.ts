@@ -43,12 +43,16 @@ export class ApplicationController {
     next: NextFunction,
   ) {
     const { id } = req.params as { id: string };
-    const application = await ApplicationService.getApplicationById(id);
+    const { id: userId } = req.user as JwtUserPayload;
+
+    const application = await ApplicationService.getApplicationById(id, userId);
+
     if (!application) {
       return ErrorResponse(res, status.NOT_FOUND, {
         message: "Application not found.",
       });
     }
+
     return SuccessResponse(res, status.OK, {
       message: "Success.",
       data: application,

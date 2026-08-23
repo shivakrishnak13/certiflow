@@ -1,5 +1,6 @@
 import * as jwt from "jsonwebtoken";
 import envConfig from "@/utils/configuration/environment";
+import mongoose from "mongoose";
 
 const JWT_SECRET: string = envConfig.JWT_SECRET;
 
@@ -18,9 +19,9 @@ const verifyToken = (token: string): Promise<any> => {
       }
     });
   });
-}
+};
 
-export {
-    getJWTToken,
-    verifyToken,
-}
+const getObjectId = (id: string) => {
+  return new mongoose.Types.ObjectId(id);
+};
+export { getJWTToken, verifyToken, getObjectId };

@@ -16,6 +16,8 @@ interface IDocument {
 
   size: number;
 
+  mimeType: string;
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -54,6 +56,10 @@ const DocumentSchema = new mongoose.Schema<IDocumentDocument>(
       type: Number,
       required: true,
     },
+    mimeType: {
+      type: String,
+      required: true,
+    }
   },
   {
     timestamps: true,

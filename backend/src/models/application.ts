@@ -45,42 +45,35 @@ const ApplicationSchema = new mongoose.Schema<IApplicationDocument>(
     },
     referenceNumber: {
       type: String,
-      required: true,
       unique: true,
+      sparse: true,
+      index: true,
     },
     applicant: {
       fullName: {
         type: String,
-        required: true,
       },
       dateOfBirth: {
         type: Date,
-        required: true,
       },
       registrationNumber: {
         type: String,
-        required: true,
       },
       address: {
         line1: {
           type: String,
-          required: true,
         },
         line2: {
           type: String,
-          required: false,
         },
         city: {
           type: String,
-          required: true,
         },
         state: {
           type: String,
-          required: true,
         },
         postalCode: {
           type: String,
-          required: true,
         },
       },
     },

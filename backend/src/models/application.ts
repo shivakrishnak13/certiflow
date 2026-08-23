@@ -25,6 +25,8 @@ interface IApplication {
     generatedAt: Date;
   };
 
+  currentStep: number;
+
   submittedAt?: Date;
 
   createdAt: Date;
@@ -92,6 +94,12 @@ const ApplicationSchema = new mongoose.Schema<IApplicationDocument>(
         type: Date,
         required: false,
       },
+    },
+
+    currentStep: {
+      type: Number,
+      enum: [1, 2, 3],
+      default: 1,
     },
 
     submittedAt: {

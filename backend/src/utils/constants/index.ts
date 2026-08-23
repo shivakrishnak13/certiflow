@@ -1,0 +1,6 @@
+import { DOCUMENT_TYPE } from "@/types/enums/enums";
+
+export const REQUIRED_DOCUMENT_TYPES = [
+  DOCUMENT_TYPE.ID_PROOF,
+  DOCUMENT_TYPE.DEGREE_CERTIFICATE,
+];

@@ -14,6 +14,11 @@ const envSchema = z.object({
   ALLOWED_ORIGINS: z.string().nonempty(),
 
   COOKIE_DOMAIN_NAME: z.string(),
+
+  AWS_REGION: z.string().nonempty(),
+  AWS_ACCESS_KEY_ID: z.string().nonempty(),
+  AWS_SECRET_ACCESS_KEY: z.string().nonempty(),
+  S3_BUCKET_NAME: z.string().nonempty(),
 });
 
 // Parse and validate environment variables

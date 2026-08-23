@@ -16,6 +16,9 @@ interface IDocument {
 
   size: number;
 
+  mimeType: string;
+  version: number;
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -54,9 +57,28 @@ const DocumentSchema = new mongoose.Schema<IDocumentDocument>(
       type: Number,
       required: true,
     },
+    mimeType: {
+      type: String,
+      required: true,
+    },
+    version: {
+      type: Number,
+      required: true,
+      default: 1,
+    },
   },
   {
     timestamps: true,
+  },
+);
+
+DocumentSchema.index(
+  {
+    applicationId: 1,
+    type: 1,
+  },
+  {
+    unique: true,
   },
 );
 

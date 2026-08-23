@@ -1,4 +1,5 @@
 import { ApplicationService } from "@/services/application.service";
+import { DocumentService } from "@/services/document.service";
 import { JwtUserPayload } from "@/types/express";
 import { ErrorResponse, SuccessResponse } from "@/utils/helpers/apiResponse";
 import {
@@ -15,7 +16,7 @@ export class ApplicationController {
     next: NextFunction,
   ) {
     const { id } = req.user as JwtUserPayload;
-    console.log("User ID from JWT:", id);
+
     const application = await ApplicationService.createApplication(id);
     return SuccessResponse(res, status.CREATED, {
       message: "Success.",
@@ -42,12 +43,16 @@ export class ApplicationController {
     next: NextFunction,
   ) {
     const { id } = req.params as { id: string };
-    const application = await ApplicationService.getApplicationById(id);
+    const { id: userId } = req.user as JwtUserPayload;
+
+    const application = await ApplicationService.getApplicationById(id, userId);
+
     if (!application) {
       return ErrorResponse(res, status.NOT_FOUND, {
         message: "Application not found.",
       });
     }
+
     return SuccessResponse(res, status.OK, {
       message: "Success.",
       data: application,
@@ -102,12 +107,30 @@ export class ApplicationController {
       });
     }
 
-    const document = await ApplicationService.uploadDocument(
+    const document = await DocumentService.uploadDocument(
       id,
       userId,
       parsedData.data.documentType,
       req.file,
     );
+
+    if (!document) {
+      return ErrorResponse(res, status.NOT_FOUND, {
+        message: "Application not found.",
+      });
+    }
+
+    return SuccessResponse(res, status.OK, {
+      message: "Document uploaded successfully.",
+      data: document,
+    });
+  }
+
+  static async getDocument(req: Request, res: Response) {
+    const { id, documentId } = req.params as { id: string; documentId: string };
+    const { id: userId } = req.user as JwtUserPayload;
+
+    const document = await DocumentService.getDocument(id, userId, documentId);
 
     if (!document) {
       return ErrorResponse(res, status.NOT_FOUND, {

@@ -143,4 +143,25 @@ export class ApplicationController {
       data: document,
     });
   }
+
+  static async submitApplication(req: Request, res: Response) {
+    const { id: applicationId } = req.params as { id: string };
+    const { id: userId } = req.user as JwtUserPayload;
+
+    const result = await ApplicationService.submitApplication(
+      applicationId,
+      userId,
+    );
+
+    if (!result) {
+      return ErrorResponse(res, status.NOT_FOUND, {
+        message: "Application not found.",
+      });
+    }
+
+    return SuccessResponse(res, status.OK, {
+      message: "Application submitted successfully.",
+      data: result,
+    });
+  }
 }

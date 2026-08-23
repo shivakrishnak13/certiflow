@@ -29,5 +29,10 @@ export class ApplicationRouter {
       "/:id/documents/:documentId/view",
       catchAsync(ApplicationController.getDocument),
     );
+
+    this.router.post(
+      "/:id/submit",
+      catchAsync(ApplicationController.submitApplication),
+    );
   }
 }

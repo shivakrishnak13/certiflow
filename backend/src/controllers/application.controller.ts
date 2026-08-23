@@ -16,7 +16,7 @@ export class ApplicationController {
     next: NextFunction,
   ) {
     const { id } = req.user as JwtUserPayload;
-    console.log("User ID from JWT:", id);
+
     const application = await ApplicationService.createApplication(id);
     return SuccessResponse(res, status.CREATED, {
       message: "Success.",

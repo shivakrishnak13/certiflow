@@ -29,15 +29,21 @@ export class DocumentService {
       throw new Error("Something went wrong while uploading your file.");
     }
 
-    return UserDocument.create({
-      _id: documentId,
-      userId,
-      applicationId,
-      type: documentType,
-      originalName: path.basename(file.originalname).slice(0, 255),
-      s3Key,
-      size: file.size,
-      mimeType: file.mimetype,
-    });
+    try {
+      UserDocument.create({
+        _id: documentId,
+        userId,
+        applicationId,
+        type: documentType,
+        originalName: path.basename(file.originalname).slice(0, 255),
+        s3Key,
+        size: file.size,
+        mimeType: file.mimetype,
+      });
+    } catch (error) {
+      console.log(s3Key);
+      await S3Service.deleteFile(s3Key);
+      throw error;
+    }
   }
 }

@@ -1,4 +1,4 @@
-import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { S3_BUCKET_NAME, s3Client } from "@/config/s3";
 
 export class S3Service {
@@ -16,5 +16,14 @@ export class S3Service {
       key,
       bucket: S3_BUCKET_NAME,
     };
+  }
+
+  static async deleteFile(key: string) {
+    const command = new DeleteObjectCommand({
+      Bucket: S3_BUCKET_NAME,
+      Key: key,
+    });
+
+    await s3Client.send(command);
   }
 }

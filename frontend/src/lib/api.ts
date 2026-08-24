@@ -1,7 +1,6 @@
-import { env } from "@/env.mjs";
 import axios, { type AxiosError } from "axios";
 
-const apiUrl = env.NEXT_PUBLIC_API_URL;
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 const HEADERS = {
   "Content-Type": "application/json",

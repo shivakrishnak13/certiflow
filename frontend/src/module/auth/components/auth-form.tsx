@@ -44,7 +44,7 @@ export function AuthForm({ mode }: AuthFormProps) {
       password,
       name: { first: firstName, last: lastName },
     } satisfies UserRegisterDataType, {
-      onSuccess: () => router.push(routes.auth.signIn),
+      onSuccess: () => router.push("/"),
     });
   };
 

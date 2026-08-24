@@ -2,12 +2,11 @@ import { Application } from "@/models/application";
 import { UserDocument } from "@/models/document";
 import { APPLICATION_STATUS } from "@/types/enums/enums";
 import { REQUIRED_DOCUMENT_TYPES } from "@/utils/constants";
+import { generateCertificatePdf } from "@/utils/helpers/certificate";
 import { getObjectId } from "@/utils/helpers/commonHelpers";
 import { generateReferenceNumber } from "@/utils/helpers/referenceNumber";
-import {
-  ApplicationType,
-  applicationSchema,
-} from "@/utils/zod/application";
+import { ApplicationType, applicationSchema } from "@/utils/zod/application";
+import { S3Service } from "@/services/s3.service";
 
 export class ApplicationService {
   static async createApplication(userId: string) {
@@ -130,7 +129,89 @@ export class ApplicationService {
 
     // generate reference number
     const referenceNumber = generateReferenceNumber();
-    console.log({ referenceNumber })
-    return false;
+    console.log({ referenceNumber });
+
+    // generate certificate PDF
+    const certificateBuffer = await generateCertificatePdf({
+      referenceNumber,
+      fullName: applicant.fullName,
+      degree: applicant.degree,
+      specialization: applicant.specialization,
+      dateOfBirth: applicant.dateOfBirth,
+      registrationNumber: applicant.registrationNumber,
+      address: applicant.address,
+    });
+
+    // upload certificate to S3
+    const certificateS3Key = `applications/${applicationId}/certificate/${referenceNumber}.pdf`;
+
+    try {
+      await S3Service.uploadFile(
+        certificateS3Key,
+        certificateBuffer,
+        "application/pdf",
+      );
+
+      const submittedApplication = await Application.findOneAndUpdate(
+        {
+          _id: applicationId,
+          userId,
+          status: APPLICATION_STATUS.DRAFT,
+        },
+        {
+          $set: {
+            status: APPLICATION_STATUS.SUBMITTED,
+            currentStep: 3,
+            referenceNumber,
+            certificate: {
+              s3Key: certificateS3Key,
+              generatedAt: new Date(),
+            },
+            submittedAt: new Date(),
+          },
+        },
+        {
+          new: true,
+        },
+      );
+
+      if (!submittedApplication) {
+        await S3Service.deleteFile(certificateS3Key);
+
+        throw new Error("Application could not be submitted.");
+      }
+
+      return {
+        application: submittedApplication,
+        referenceNumber,
+      };
+    } catch (error) {
+      await S3Service.deleteFile(certificateS3Key).catch(() => undefined);
+      throw error;
+    }
+  }
+
+  static async getCertificateDownloadUrl(
+    applicationId: string,
+    userId: string,
+  ) {
+    const application = await Application.findOne({
+      _id: applicationId,
+      userId,
+      status: APPLICATION_STATUS.SUBMITTED,
+    }).lean();
+
+    if (!application || !application.certificate.s3Key) {
+      return null;
+    }
+
+    const url = await S3Service.getSignedDownloadUrl(
+      application.certificate.s3Key,
+    );
+
+    return {
+      url,
+      fileName: `provisional-certificate-${application.referenceNumber}.pdf`,
+    };
   }
 }

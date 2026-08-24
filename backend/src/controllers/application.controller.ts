@@ -161,6 +161,32 @@ export class ApplicationController {
 
     return SuccessResponse(res, status.OK, {
       message: "Application submitted successfully.",
+      data: {
+        applicationId: result.application._id,
+        status: result.application.status,
+        referenceNumber: result.referenceNumber,
+        submittedAt: result.application.submittedAt,
+      },
+    });
+  }
+
+  static async downloadCertificate(req: Request, res: Response) {
+    const { id: applicationId } = req.params as { id: string };
+    const { id: userId } = req.user as JwtUserPayload;
+
+    const result = await ApplicationService.getCertificateDownloadUrl(
+      applicationId,
+      userId,
+    );
+
+    if (!result) {
+      return ErrorResponse(res, status.NOT_FOUND, {
+        message: "Certificate not found.",
+      });
+    }
+
+    return SuccessResponse(res, status.OK, {
+      message: "Certificate download URL generated successfully.",
       data: result,
     });
   }

@@ -33,7 +33,7 @@ export function AuthForm({ mode }: AuthFormProps) {
   const onSubmit = (values: SignUpValues | SignInValues) => {
     if (!isSignUp) {
       useLoginMutation.mutate(values as SignInValues satisfies UserLoginDataType, {
-        onSuccess: () => router.push("/"),
+        onSuccess: () => router.push(routes.dashboard),
       });
       return;
     }
@@ -44,7 +44,7 @@ export function AuthForm({ mode }: AuthFormProps) {
       password,
       name: { first: firstName, last: lastName },
     } satisfies UserRegisterDataType, {
-      onSuccess: () => router.push("/"),
+      onSuccess: () => router.push(routes.dashboard),
     });
   };
 

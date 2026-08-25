@@ -1,9 +1,9 @@
-import Image from "next/image";
+import { ApplicationsDashboard } from "@/module/dashboard/components/applications-dashboard";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      Hello world
-    </div>
+    <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+      <ApplicationsDashboard />
+    </main>
   );
 }

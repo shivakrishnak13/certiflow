@@ -1,8 +1,19 @@
 import { apiClient } from "@/lib/api";
-import type { AuthResponseType, UserLoginDataType, UserRegisterDataType } from "@/module/auth/types";
-import { useMutation } from "@tanstack/react-query";
+import type {
+  AuthResponseType,
+  AuthUserType,
+  LogoutResponse,
+  MeResponse,
+  UserLoginDataType,
+  UserRegisterDataType,
+} from "@/module/auth/types";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const API_AUTH_URL = "/auth";
+
+export const authKeys = {
+  me: ["auth", "me"] as const,
+};
 
 export const useAuth = () => {
   const useRegisterMutation = useMutation({
@@ -27,5 +38,37 @@ export const useAuth = () => {
     },
   });
 
-  return { useRegisterMutation, useLoginMutation };
+  const useMeQuery = useQuery({
+    queryKey: authKeys.me,
+    queryFn: async (): Promise<AuthUserType> => {
+      const response = await apiClient.get<MeResponse>(`${API_AUTH_URL}/me`);
+
+      return response.data.data.user;
+    },
+    retry: false,
+  });
+
+  const useLogoutMutation = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+      mutationFn: async () => {
+        const response = await apiClient.post<LogoutResponse>(`${API_AUTH_URL}/logout`);
+
+        return response.data;
+      },
+
+      onSuccess: async () => {
+        await queryClient.cancelQueries();
+
+        queryClient.removeQueries({
+          queryKey: authKeys.me,
+        });
+
+        queryClient.clear();
+      },
+    });
+  };
+
+  return { useRegisterMutation, useLoginMutation, useMeQuery, useLogoutMutation };
 };

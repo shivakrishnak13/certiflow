@@ -15,7 +15,11 @@ export const authKeys = {
   me: ["auth", "me"] as const,
 };
 
-export const useAuth = () => {
+type UseAuthOptions = {
+  meEnabled?: boolean;
+};
+
+export const useAuth = ({ meEnabled = true }: UseAuthOptions = {}) => {
   const useRegisterMutation = useMutation({
     mutationFn: async (userData: UserRegisterDataType) => {
       const response = await apiClient.post<AuthResponseType>(
@@ -45,6 +49,7 @@ export const useAuth = () => {
 
       return response.data.data.user;
     },
+    enabled: meEnabled,
     retry: false,
   });
 

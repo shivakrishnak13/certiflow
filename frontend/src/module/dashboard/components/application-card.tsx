@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/card";
 import { routes } from "@/config/routes";
 import { useDownloadCertificate } from "@/module/submission/hooks/useDownloadCertificate";
-import type { DashboardApplication } from "@/module/dashboard/types";
+import type { ApplicationCurrentStep, DashboardApplication } from "@/module/dashboard/types";
 
 type ApplicationCardProps = {
   application: DashboardApplication;
@@ -26,6 +26,12 @@ const statusLabel: Record<DashboardApplication["status"], string> = {
   COMPLETED: "Completed",
 };
 
+const draftStepRoutes: Record<ApplicationCurrentStep, (id: string) => string> = {
+  1: routes.applications.details,
+  2: routes.applications.documents,
+  3: routes.applications.review,
+};
+
 export function ApplicationCard({
   application,
 }: ApplicationCardProps) {
@@ -35,6 +41,14 @@ export function ApplicationCard({
   const isSubmitted = application.status === "SUBMITTED";
 
   const downloadCertificate = useDownloadCertificate(application._id);
+
+  const handleOpenApplication = () => {
+    const applicationRoute = isDraft
+      ? draftStepRoutes[application.currentStep](application._id)
+      : routes.applications.details(application._id);
+
+    router.push(applicationRoute);
+  };
 
   const handleDownloadCertificate = () => {
     downloadCertificate.mutate(undefined, {
@@ -61,7 +75,7 @@ export function ApplicationCard({
     <Card>
       <CardHeader className="gap-2 sm:flex sm:flex-row sm:items-start sm:justify-between">
         <CardTitle>
-          {application.applicant.fullName || "Untitled application"}
+          {application.applicant?.fullName || "Untitled application"}
         </CardTitle>
 
         <Badge variant={isDraft ? "secondary" : "outline"}>
@@ -87,9 +101,7 @@ export function ApplicationCard({
         <CardFooter className="flex-col items-stretch gap-2 sm:flex-row sm:justify-end">
           <Button
             className="w-full sm:w-auto"
-            onClick={() =>
-              router.push(routes.applications.details(application._id))
-            }
+            onClick={handleOpenApplication}
           >
             {isDraft ? "Continue Application" : "View Application"}
           </Button>

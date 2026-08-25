@@ -1,9 +1,11 @@
 export type ApplicationStatus = "DRAFT" | "SUBMITTED" | "COMPLETED";
+export type ApplicationCurrentStep = 1 | 2 | 3;
 
 export type DashboardApplication = {
   _id: string;
   status: ApplicationStatus;
-  applicant: {
+  currentStep: ApplicationCurrentStep;
+  applicant?: {
     fullName?: string;
   };
   referenceNumber?: string;

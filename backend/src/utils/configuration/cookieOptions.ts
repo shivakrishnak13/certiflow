@@ -7,5 +7,4 @@ export const cookieOptions: CookieOptions = {
   secure: envConfig.NODE_ENV === ENV.PRODUCTION,
   sameSite: envConfig.NODE_ENV === ENV.PRODUCTION ? "none" : "lax",
   path: "/",
-  domain: envConfig.COOKIE_DOMAIN_NAME,
 };

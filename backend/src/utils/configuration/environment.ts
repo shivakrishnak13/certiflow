@@ -13,7 +13,7 @@ const envSchema = z.object({
 
   ALLOWED_ORIGINS: z.string().nonempty(),
 
-  COOKIE_DOMAIN_NAME: z.string(),
+  COOKIE_DOMAIN_NAME: z.string().optional(),
 
   AWS_REGION: z.string().nonempty(),
   AWS_ACCESS_KEY_ID: z.string().nonempty(),

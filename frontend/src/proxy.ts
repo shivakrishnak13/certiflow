@@ -10,10 +10,6 @@ export function proxy(request: NextRequest) {
   const isAuthenticated = request.cookies.has(COOKIES.TOKEN);
   const isPublicRoute = publicRoutes.includes(pathname);
 
-  if (!isAuthenticated && !isPublicRoute) {
-    return NextResponse.redirect(new URL(routes.auth.signIn, request.url));
-  }
-
   if (isAuthenticated && isPublicRoute) {
     return NextResponse.redirect(new URL(routes.dashboard, request.url));
   }

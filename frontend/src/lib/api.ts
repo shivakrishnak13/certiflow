@@ -25,9 +25,7 @@ apiClient.interceptors.response.use(
   },
   (error: AxiosError<ErrorResponseType>) => {
     const status = error?.response?.status;
-    const errorMessage = error?.response?.data?.message?.toLowerCase() || "";
-
-    if (status === 401 && errorMessage.includes("invalid token")) {
+    if (status === 401) {
       window.location.href = routes.auth.signIn;
     }
 

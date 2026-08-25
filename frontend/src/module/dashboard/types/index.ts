@@ -14,3 +14,12 @@ export type ApplicationsResponse = {
   message: string;
   data: DashboardApplication[];
 };
+
+export type CreateApplicationResponse = {
+  message: string;
+  data: {
+    _id: string;
+    status: "DRAFT";
+    currentStep: 1;
+  };
+};

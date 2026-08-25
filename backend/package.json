@@ -4,10 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "tsx watch --env-file=.env src/server.ts",
-    "build": "tsc",
-    "start": "node dist/server.js"
+  "dev": "tsx watch --env-file=.env src/server.ts",
+  "build": "tsc && tsc-alias",
+  "start": "node dist/server.js"
   },
   "keywords": [],
   "author": "",
@@ -37,6 +36,7 @@
     "@types/multer": "^2.2.0",
     "@types/node": "^26.2.0",
     "@types/pdfkit": "^0.17.6",
+    "tsc-alias": "^1.9.2",
     "tsx": "^4.23.12",
     "typescript": "^7.0.2"
   }

@@ -1,0 +1,16 @@
+export const DEGREE_OPTIONS: string[] = [
+  "B.Tech",
+  "B.E.",
+  "B.Sc",
+  "B.Com",
+  "B.A.",
+  "BCA",
+  "MCA",
+  "M.Tech",
+  "M.E.",
+  "M.Sc",
+  "M.Com",
+  "M.A.",
+  "MBA",
+  "Other",
+];

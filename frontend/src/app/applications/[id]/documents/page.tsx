@@ -1,3 +1,5 @@
+import { ApplicationStepper } from "@/components/common/application-stepper";
+import { PageHeading } from "@/components/common/page-heading";
 import { DocumentsStep } from "@/module/documents/components/documents-step";
 
 type DocumentsPageProps = {
@@ -8,8 +10,15 @@ export default async function DocumentsPage({ params }: DocumentsPageProps) {
   const { id } = await params;
 
   return (
-    <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+    <div className="space-y-6">
+      <ApplicationStepper currentStep={2} />
+
+      <PageHeading
+        title="Documents"
+        description="Upload your ID proof and degree certificate as PDF files."
+      />
+
       <DocumentsStep applicationId={id} />
-    </main>
+    </div>
   );
 }

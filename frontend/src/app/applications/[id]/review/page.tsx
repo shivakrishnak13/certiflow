@@ -1,3 +1,5 @@
+import { ApplicationStepper } from "@/components/common/application-stepper";
+import { PageHeading } from "@/components/common/page-heading";
 import { ReviewStep } from "@/module/review/components/review-step";
 
 type ReviewPageProps = {
@@ -8,8 +10,15 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
   const { id } = await params;
 
   return (
-    <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+    <div className="space-y-6">
+      <ApplicationStepper currentStep={3} />
+
+      <PageHeading
+        title="Review Application"
+        description="Check your details and documents before submitting. You can go back to make changes."
+      />
+
       <ReviewStep applicationId={id} />
-    </main>
+    </div>
   );
 }

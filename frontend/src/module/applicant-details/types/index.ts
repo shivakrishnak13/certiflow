@@ -13,6 +13,15 @@ export type ApplicantDetails = {
   };
 };
 
+export type ApplicationDocumentType = "ID_PROOF" | "DEGREE_CERTIFICATE";
+
+export type ApplicationDocument = {
+  id: string;
+  type: ApplicationDocumentType;
+  originalName: string;
+  size: number;
+};
+
 export type ApplicationDetailsResponse = {
   message: string;
   data: {
@@ -22,5 +31,6 @@ export type ApplicationDetailsResponse = {
       currentStep: number;
       applicant?: ApplicantDetails;
     };
+    documents: ApplicationDocument[];
   };
 };

@@ -8,5 +8,6 @@ export const routes = {
   applications: {
     details: (id: string) => `/applications/${id}/details`,
     documents: (id: string) => `/applications/${id}/documents`,
+    review: (id: string) => `/applications/${id}/review`,
   },
 };

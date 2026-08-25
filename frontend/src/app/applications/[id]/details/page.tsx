@@ -1,3 +1,5 @@
+import { ApplicationStepper } from "@/components/common/application-stepper";
+import { PageHeading } from "@/components/common/page-heading";
 import { ApplicantDetailsForm } from "@/module/applicant-details/components/applicant-details-form";
 
 type ApplicantDetailsPageProps = {
@@ -8,8 +10,15 @@ export default async function ApplicantDetailsPage({ params }: ApplicantDetailsP
   const { id } = await params;
 
   return (
-    <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+    <div className="space-y-6">
+      <ApplicationStepper currentStep={1} />
+
+      <PageHeading
+        title="Applicant Details"
+        description="Tell us who the provisional certificate should be issued to."
+      />
+
       <ApplicantDetailsForm applicationId={id} />
-    </main>
+    </div>
   );
 }

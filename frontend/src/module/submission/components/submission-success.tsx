@@ -1,10 +1,11 @@
 "use client";
 
 import { isAxiosError } from "axios";
-import { LoaderCircle } from "lucide-react";
+import { CircleCheck, Download, LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { routes } from "@/config/routes";
 import { useDownloadCertificate } from "@/module/submission/hooks/useDownloadCertificate";
 import type { SubmissionDetails } from "@/module/submission/types";
@@ -70,58 +71,72 @@ export function SubmissionSuccess({
     : null;
 
   return (
-    <Card className="mx-auto w-full max-w-lg">
-      <CardHeader>
-        <CardTitle>Application submitted successfully</CardTitle>
-      </CardHeader>
+    <Card className="mx-auto w-full max-w-xl [--card-spacing:--spacing(5)] sm:[--card-spacing:--spacing(6)]">
+      <CardContent className="space-y-6">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <span className="flex size-12 items-center justify-center rounded-full bg-success/10 text-success">
+            <CircleCheck aria-hidden="true" className="size-6" />
+          </span>
 
-      <CardContent className="space-y-5">
-        <dl className="space-y-3">
-          <div>
-            <dt className="text-sm text-muted-foreground">
-              Reference number
-            </dt>
-            <dd className="mt-1 font-medium">
+          <div className="space-y-1">
+            <h1 className="text-xl font-semibold tracking-tight text-balance sm:text-2xl">
+              Application Submitted Successfully
+            </h1>
+            <p className="text-sm text-pretty text-muted-foreground">
+              Your application has been submitted successfully. Keep your
+              reference number for future correspondence.
+            </p>
+          </div>
+        </div>
+
+        <dl className="divide-y rounded-lg border">
+          <div className="px-4 py-3">
+            <dt className="text-xs text-muted-foreground">Reference Number</dt>
+            <dd className="mt-0.5 font-mono text-sm font-semibold break-all">
               {submission.referenceNumber}
             </dd>
           </div>
 
-          <div>
-            <dt className="text-sm text-muted-foreground">
-              Submitted date/time
-            </dt>
-            <dd className="mt-1 font-medium">
+          <div className="px-4 py-3">
+            <dt className="text-xs text-muted-foreground">Submitted On</dt>
+            <dd className="mt-0.5 text-sm font-medium">
               {formatSubmittedAt(submission.submittedAt)}
             </dd>
           </div>
         </dl>
 
-        {downloadError ? (
-          <p className="text-sm text-destructive">
+        {downloadCertificate.isError ? (
+          <Alert>
             {downloadError || "Unable to download certificate. Please try again."}
-          </p>
+          </Alert>
         ) : null}
 
-        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-center">
           <Button
             type="button"
             variant="outline"
-            onClick={handleDownloadCertificate}
-            disabled={downloadCertificate.isPending}
+            size="xl"
+            className="w-full sm:w-auto"
+            onClick={() => router.push(routes.dashboard)}
           >
-            {downloadCertificate.isPending ? (
-              <LoaderCircle className="animate-spin" />
-            ) : null}
-            {downloadCertificate.isPending
-              ? "Preparing..."
-              : "Download Certificate"}
+            Go to Dashboard
           </Button>
 
           <Button
             type="button"
-            onClick={() => router.push(routes.dashboard)}
+            size="xl"
+            className="w-full sm:w-auto"
+            onClick={handleDownloadCertificate}
+            disabled={downloadCertificate.isPending}
           >
-            Go to Dashboard
+            {downloadCertificate.isPending ? (
+              <LoaderCircle aria-hidden="true" className="animate-spin" />
+            ) : (
+              <Download aria-hidden="true" />
+            )}
+            {downloadCertificate.isPending
+              ? "Preparing..."
+              : "Download Certificate"}
           </Button>
         </div>
       </CardContent>

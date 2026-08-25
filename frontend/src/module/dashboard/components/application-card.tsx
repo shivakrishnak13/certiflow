@@ -1,8 +1,9 @@
 "use client";
 
 import { isAxiosError } from "axios";
-import { LoaderCircle } from "lucide-react";
+import { CircleCheck, Download, FileClock, LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +25,12 @@ const statusLabel: Record<DashboardApplication["status"], string> = {
   DRAFT: "Draft",
   SUBMITTED: "Submitted",
   COMPLETED: "Completed",
+};
+
+const stepLabel: Record<ApplicationCurrentStep, string> = {
+  1: "Applicant Details",
+  2: "Documents",
+  3: "Review",
 };
 
 const draftStepRoutes: Record<ApplicationCurrentStep, (id: string) => string> = {
@@ -72,35 +79,60 @@ export function ApplicationCard({
     : null;
 
   return (
-    <Card>
-      <CardHeader className="gap-2 sm:flex sm:flex-row sm:items-start sm:justify-between">
-        <CardTitle>
-          {application.applicant?.fullName || "Untitled application"}
-        </CardTitle>
-
-        <Badge variant={isDraft ? "secondary" : "outline"}>
+    <Card className="flex h-full flex-col">
+      <CardHeader className="gap-2">
+        <Badge
+          variant={isDraft ? "outline" : "success"}
+          className="w-fit gap-1.5"
+        >
+          {isDraft ? (
+            <FileClock aria-hidden="true" />
+          ) : (
+            <CircleCheck aria-hidden="true" />
+          )}
           {statusLabel[application.status]}
         </Badge>
+
+        <CardTitle className="line-clamp-2 break-words">
+          {application.applicant?.fullName || "Untitled application"}
+        </CardTitle>
       </CardHeader>
 
-      {application.referenceNumber ? (
-        <CardContent className="text-muted-foreground">
-          Reference number: {application.referenceNumber}
-        </CardContent>
-      ) : null}
-
-      {isSubmitted && downloadError ? (
-        <CardContent className="pt-0">
-          <p className="text-sm text-destructive">
-            {downloadError || "Unable to download certificate. Please try again."}
+      <CardContent className="flex-1">
+        {isDraft ? (
+          <div className="space-y-0.5">
+            <p className="text-xs text-muted-foreground">Next step</p>
+            <p className="text-sm font-medium">
+              Step {application.currentStep} of 3 &middot;{" "}
+              {stepLabel[application.currentStep]}
+            </p>
+          </div>
+        ) : application.referenceNumber ? (
+          <div className="space-y-0.5">
+            <p className="text-xs text-muted-foreground">Reference number</p>
+            <p className="font-mono text-sm font-medium break-all">
+              {application.referenceNumber}
+            </p>
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Reference number not available.
           </p>
-        </CardContent>
-      ) : null}
+        )}
+
+        {isSubmitted && downloadCertificate.isError ? (
+          <Alert className="mt-3">
+            {downloadError || "Unable to download certificate. Please try again."}
+          </Alert>
+        ) : null}
+      </CardContent>
 
       {(isDraft || isSubmitted) && (
-        <CardFooter className="flex-col items-stretch gap-2 sm:flex-row sm:justify-end">
+        <CardFooter className="flex-col items-stretch gap-2">
           <Button
-            className="w-full sm:w-auto"
+            className="w-full"
+            size="xl"
+            variant={isDraft ? "default" : "outline"}
             onClick={handleOpenApplication}
           >
             {isDraft ? "Continue Application" : "View Application"}
@@ -108,14 +140,16 @@ export function ApplicationCard({
 
           {isSubmitted && (
             <Button
-              className="w-full sm:w-auto"
-              variant="outline"
+              className="w-full"
+              size="xl"
               onClick={handleDownloadCertificate}
               disabled={downloadCertificate.isPending}
             >
               {downloadCertificate.isPending ? (
-                <LoaderCircle className="animate-spin" />
-              ) : null}
+                <LoaderCircle aria-hidden="true" className="animate-spin" />
+              ) : (
+                <Download aria-hidden="true" />
+              )}
 
               {downloadCertificate.isPending
                 ? "Preparing..."

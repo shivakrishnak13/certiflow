@@ -1,15 +1,18 @@
 "use client";
 
+import { LoaderCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useSyncExternalStore } from "react";
+import { ErrorState } from "@/components/common/error-state";
+import { LoadingPanel } from "@/components/common/loading-panel";
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { routes } from "@/config/routes";
 import { useApplicationDetails } from "@/module/applicant-details/hooks/useApplicationDetails";
-import { formatAddress, getApiError } from "@/module/review/utils";
-import { useSubmitApplication } from "@/module/submission/hooks/useSubmitApplication";
-import { LoaderCircle } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useSyncExternalStore } from "react";
 import { ReviewDocument } from "@/module/review/components/review-document";
+import { getApiError } from "@/module/review/utils";
+import { useSubmitApplication } from "@/module/submission/hooks/useSubmitApplication";
 
 type ReviewStepProps = {
   applicationId: string;
@@ -24,9 +27,11 @@ const subscribe = () => () => undefined;
 
 function ReviewItem({ label, value }: ReviewItemProps) {
   return (
-    <div>
-      <dt className="text-sm text-muted-foreground">{label}</dt>
-      <dd className="mt-1 font-medium">{value || "Not provided"}</dd>
+    <div className="min-w-0">
+      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dd className="mt-0.5 text-sm font-medium break-words">
+        {value || <span className="font-normal text-muted-foreground">Not provided</span>}
+      </dd>
     </div>
   );
 }
@@ -38,23 +43,24 @@ export function ReviewStep({ applicationId }: ReviewStepProps) {
   const submitApplication = useSubmitApplication(applicationId);
 
   if (!hasMounted || applicationQuery.isLoading) {
-    return (
-      <div className="flex min-h-40 items-center justify-center gap-2 text-sm text-muted-foreground" role="status">
-        <LoaderCircle className="size-4 animate-spin" />
-        Loading application review...
-      </div>
-    );
+    return <LoadingPanel label="Loading application review..." rows={4} />;
   }
 
   if (applicationQuery.isError) {
     return (
-      <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-center">
-        <p className="font-medium">Unable to load application review</p>
-        <p className="mt-1 text-sm text-muted-foreground">{getApiError(applicationQuery.error) || "Please try again."}</p>
-        <Button className="mt-4" variant="outline" onClick={() => router.push(routes.applications.documents(applicationId))}>
-          Back to documents
-        </Button>
-      </div>
+      <ErrorState
+        title="Unable to load application review"
+        description={getApiError(applicationQuery.error) || "Please try again."}
+        action={
+          <Button
+            variant="outline"
+            size="xl"
+            onClick={() => router.push(routes.applications.documents(applicationId))}
+          >
+            Back to documents
+          </Button>
+        }
+      />
     );
   }
 
@@ -64,6 +70,7 @@ export function ReviewStep({ applicationId }: ReviewStepProps) {
   const degreeCertificate = documents.find((document) => document.type === "DEGREE_CERTIFICATE");
   const canSubmit = applicationQuery.data?.application.status === "DRAFT";
   const submitError = getApiError(submitApplication.error);
+  const isSubmitting = submitApplication.isPending;
 
   const handleSubmit = () => {
     submitApplication.mutate(undefined, {
@@ -80,11 +87,12 @@ export function ReviewStep({ applicationId }: ReviewStepProps) {
   };
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-4">
+    <div className="space-y-4">
       <Card>
-        <CardHeader>
-          <CardTitle>Review application</CardTitle>
+        <CardHeader className="border-b">
+          <CardTitle>Applicant Information</CardTitle>
         </CardHeader>
+
         <CardContent>
           <dl className="grid gap-4 sm:grid-cols-2">
             <ReviewItem label="Full Name" value={applicant?.fullName} />
@@ -92,35 +100,76 @@ export function ReviewStep({ applicationId }: ReviewStepProps) {
             <ReviewItem label="Registration Number" value={applicant?.registrationNumber} />
             <ReviewItem label="Degree" value={applicant?.degree} />
             <ReviewItem label="Specialization" value={applicant?.specialization} />
-            <div className="sm:col-span-2">
-              <ReviewItem label="Address" value={formatAddress(applicant?.address)} />
-            </div>
           </dl>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Required documents</CardTitle>
+        <CardHeader className="border-b">
+          <CardTitle>Address</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+
+        <CardContent>
+          <dl className="grid gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <ReviewItem label="Address Line 1" value={applicant?.address?.line1} />
+            </div>
+            {applicant?.address?.line2 ? (
+              <div className="sm:col-span-2">
+                <ReviewItem label="Address Line 2" value={applicant.address.line2} />
+              </div>
+            ) : null}
+            <ReviewItem label="City" value={applicant?.address?.city} />
+            <ReviewItem label="State" value={applicant?.address?.state} />
+            <ReviewItem label="Postal Code" value={applicant?.address?.postalCode} />
+          </dl>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="border-b">
+          <CardTitle>Documents</CardTitle>
+        </CardHeader>
+
+        <CardContent className="space-y-3">
           <ReviewDocument applicationId={applicationId} label="ID Proof" document={idProof} />
           <ReviewDocument applicationId={applicationId} label="Degree Certificate" document={degreeCertificate} />
         </CardContent>
       </Card>
 
+      {submitApplication.isError && (
+        <Alert>{submitError || "Unable to submit the application. Please try again."}</Alert>
+      )}
+
+      {!canSubmit && (
+        <Alert variant="info">This application has already been submitted.</Alert>
+      )}
+
       <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-        <Button type="button" variant="outline" onClick={() => router.push(routes.applications.documents(applicationId))}>
+        <Button
+          type="button"
+          variant="outline"
+          size="xl"
+          className="w-full sm:w-auto"
+          onClick={() => router.push(routes.applications.documents(applicationId))}
+          disabled={isSubmitting}
+        >
           Back
         </Button>
-        <Button type="button" onClick={handleSubmit} disabled={!canSubmit || submitApplication.isPending}>
-          {submitApplication.isPending ? <LoaderCircle className="animate-spin" /> : null}
-          Submit Application
+
+        <Button
+          type="button"
+          size="xl"
+          className="w-full sm:w-auto sm:min-w-52"
+          onClick={handleSubmit}
+          disabled={!canSubmit || isSubmitting}
+        >
+          {isSubmitting ? (
+            <LoaderCircle aria-hidden="true" className="animate-spin" />
+          ) : null}
+          {isSubmitting ? "Submitting..." : "Submit Application"}
         </Button>
       </div>
-      {submitApplication.isError && (
-        <p className="text-right text-sm text-destructive">{submitError || "Unable to submit the application. Please try again."}</p>
-      )}
     </div>
   );
 }

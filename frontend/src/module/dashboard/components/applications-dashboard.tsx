@@ -1,10 +1,15 @@
 "use client";
 
 import { isAxiosError } from "axios";
-import { AlertCircle, LoaderCircle, LogOut } from "lucide-react";
+import { FileText, LoaderCircle, Plus, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSyncExternalStore } from "react";
+import { ErrorState } from "@/components/common/error-state";
+import { PageHeading } from "@/components/common/page-heading";
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { routes } from "@/config/routes";
 import type { ErrorResponseType } from "@/lib/api";
 import { ApplicationCard } from "@/module/dashboard/components/application-card";
@@ -14,14 +19,30 @@ import { useAuth } from "@/module/auth/hooks/useAuth";
 
 const subscribe = () => () => undefined;
 
+function ApplicationCardSkeleton() {
+  return (
+    <Card aria-hidden="true">
+      <CardHeader>
+        <Skeleton className="h-5 w-3/4" />
+      </CardHeader>
+      <CardContent className="space-y-2">
+        <Skeleton className="h-3.5 w-1/2" />
+        <Skeleton className="h-3.5 w-2/3" />
+      </CardContent>
+      <CardContent>
+        <Skeleton className="h-10 w-full" />
+      </CardContent>
+    </Card>
+  );
+}
+
 export function ApplicationsDashboard() {
   const router = useRouter();
   const hasMounted = useSyncExternalStore(subscribe, () => true, () => false);
-  const { data: applications, error, isLoading } = useApplications(hasMounted);
+  const { data: applications, error, isLoading, refetch, isFetching } = useApplications(hasMounted);
   const { useCreateApplicationMutation } = useCreateApplication();
-  const { useMeQuery, useLogoutMutation } = useAuth();
+  const { useMeQuery } = useAuth();
   const { data: user } = useMeQuery;
-  const logoutMutation = useLogoutMutation();
   const createError = isAxiosError<ErrorResponseType>(useCreateApplicationMutation.error)
     ? useCreateApplicationMutation.error.response?.data.message
     : null;
@@ -34,96 +55,110 @@ export function ApplicationsDashboard() {
     });
   };
 
-  const handleLogout = () => {
-    logoutMutation.mutate(undefined, {
-      onSuccess: () => router.replace(routes.auth.signIn),
-    });
-  };
-
   const userName = user ? `${user.name.first} ${user.name.last}`.trim() : null;
+  const isCreating = useCreateApplicationMutation.isPending;
 
-  const dashboardHeader = (
-    <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <h1 className="text-2xl font-semibold">Applications</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {userName ? `Welcome back, ${userName}.` : "Track the status of your certificate applications."}
-        </p>
-      </div>
-      <div className="flex flex-col items-start gap-1 sm:items-end">
-        <div className="flex items-center gap-3">
-          {userName && <span className="text-sm font-medium">{userName}</span>}
-          <Button variant="outline" onClick={handleLogout} disabled={logoutMutation.isPending}>
-            {logoutMutation.isPending ? <LoaderCircle className="animate-spin" /> : <LogOut />}
-            Log out
-          </Button>
-        </div>
-        {logoutMutation.isError && <p className="text-sm text-destructive">Unable to log out. Please try again.</p>}
-      </div>
-    </header>
-  );
-
-  if (!hasMounted || isLoading) {
-    return (
-      <>
-        {dashboardHeader}
-        <div className="flex min-h-40 items-center justify-center gap-2 text-sm text-muted-foreground" role="status">
-          <LoaderCircle className="size-4 animate-spin" />
-          Loading applications...
-        </div>
-      </>
-    );
-  }
-
-  const createApplicationAction = (
-    <div className="mb-4 flex flex-col items-start gap-2 sm:flex-row sm:items-center">
-      <Button onClick={handleCreateApplication} disabled={useCreateApplicationMutation.isPending}>
-        {useCreateApplicationMutation.isPending ? <LoaderCircle className="animate-spin" /> : null}
-        Get Provisional Certificate
-      </Button>
-      {useCreateApplicationMutation.isError && (
-        <p className="text-sm text-destructive">
-          {createError || "Unable to create an application. Please try again."}
-        </p>
+  const createApplicationButton = (
+    <Button
+      className="w-full sm:w-auto"
+      size="xl"
+      onClick={handleCreateApplication}
+      disabled={isCreating}
+    >
+      {isCreating ? (
+        <LoaderCircle aria-hidden="true" className="animate-spin" />
+      ) : (
+        <Plus aria-hidden="true" />
       )}
-    </div>
+      {isCreating ? "Creating..." : "Get Provisional Certificate"}
+    </Button>
   );
 
-  if (error) {
-    return (
-      <>
-        {dashboardHeader}
-        {createApplicationAction}
-        <div className="flex min-h-40 flex-col items-center justify-center gap-2 rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-center">
-          <AlertCircle className="size-5 text-destructive" aria-hidden="true" />
-          <p className="font-medium">Unable to load applications</p>
-          <p className="text-sm text-muted-foreground">Please refresh the page and try again.</p>
-        </div>
-      </>
-    );
-  }
+  const isEmpty = hasMounted && !isLoading && !error && !applications?.length;
 
-  if (!applications?.length) {
-    return (
-      <>
-        {dashboardHeader}
-        {createApplicationAction}
-        <div className="flex min-h-40 items-center justify-center rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
-          You do not have any applications yet.
-        </div>
-      </>
-    );
-  }
+  const heading = (
+    <PageHeading
+      title="Applications"
+      description={
+        userName
+          ? `Welcome back, ${userName}. Create and track your provisional certificate applications.`
+          : "Create and track your provisional certificate applications."
+      }
+      action={isEmpty ? undefined : createApplicationButton}
+    />
+  );
 
-  return (
-    <>
-      {dashboardHeader}
-      {createApplicationAction}
+  const renderBody = () => {
+    if (!hasMounted || isLoading) {
+      return (
+        <div
+          role="status"
+          aria-busy="true"
+          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        >
+          <span className="sr-only">Loading applications...</span>
+          <ApplicationCardSkeleton />
+          <ApplicationCardSkeleton />
+          <ApplicationCardSkeleton />
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <ErrorState
+          title="Unable to load applications"
+          description="Something went wrong while loading your applications. Please try again."
+          action={
+            <Button variant="outline" size="xl" onClick={() => refetch()} disabled={isFetching}>
+              {isFetching ? (
+                <LoaderCircle aria-hidden="true" className="animate-spin" />
+              ) : (
+                <RefreshCw aria-hidden="true" />
+              )}
+              Try again
+            </Button>
+          }
+        />
+      );
+    }
+
+    if (!applications?.length) {
+      return (
+        <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed bg-background px-4 py-12 text-center">
+          <span className="flex size-11 items-center justify-center rounded-full bg-muted text-muted-foreground">
+            <FileText aria-hidden="true" className="size-5" />
+          </span>
+          <div className="space-y-1">
+            <p className="font-medium">No applications yet</p>
+            <p className="mx-auto max-w-sm text-sm text-pretty text-muted-foreground">
+              Start a new application to enter your details, upload your documents,
+              and download your provisional certificate.
+            </p>
+          </div>
+          {createApplicationButton}
+        </div>
+      );
+    }
+
+    return (
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {applications.map((application) => (
           <ApplicationCard key={application._id} application={application} />
         ))}
       </div>
-    </>
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      {heading}
+
+      {useCreateApplicationMutation.isError && (
+        <Alert>{createError || "Unable to create an application. Please try again."}</Alert>
+      )}
+
+      {renderBody()}
+    </div>
   );
 }

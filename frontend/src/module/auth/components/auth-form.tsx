@@ -1,23 +1,22 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { isAxiosError } from "axios";
 import { LoaderCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm, type FieldErrors } from "react-hook-form";
+import { fieldAria, FormField } from "@/components/common/form-field";
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { routes } from "@/config/routes";
+import type { ErrorResponseType } from "@/lib/api";
 import { useAuth } from "@/module/auth/hooks/useAuth";
 import type { AuthFormProps, UserLoginDataType, UserRegisterDataType } from "@/module/auth/types";
 import { signInSchema, SignInValues, signUpSchema, SignUpValues } from "@/module/auth/utils/form-utils";
 import { PasswordInput } from "@/module/auth/components/password-input";
-
-function FieldError({ children }: { children?: string }) {
-  return children ? <p className="text-xs text-destructive">{children}</p> : null;
-}
 
 export function AuthForm({ mode }: AuthFormProps) {
   const isSignUp = mode === "sign-up";
@@ -49,64 +48,112 @@ export function AuthForm({ mode }: AuthFormProps) {
   };
 
   const activeMutation = isSignUp ? useRegisterMutation : useLoginMutation;
-  const submitError = activeMutation.error instanceof Error ? activeMutation.error.message : null;
-  const signUpErrors = form.formState.errors as FieldErrors<SignUpValues>;
+  const submitError = isAxiosError<ErrorResponseType>(activeMutation.error)
+    ? activeMutation.error.response?.data.message
+    : null;
+  const errors = form.formState.errors;
+  const signUpErrors = errors as FieldErrors<SignUpValues>;
   const title = isSignUp ? "Create your account" : "Welcome back";
   const description = isSignUp
-    ? "Start managing your certificates in one place."
+    ? "Start managing your provisional certificates in one place."
     : "Sign in to continue to CertiFlow.";
+  const fallbackError = isSignUp
+    ? "Unable to create your account. Please try again."
+    : "Unable to sign in. Please check your details and try again.";
 
   return (
-    <Card className="w-full max-w-md shadow-sm">
-      <CardHeader className="gap-2">
-        <p className="text-sm font-semibold text-primary">CertiFlow</p>
-        <CardTitle className="text-2xl">{title}</CardTitle>
+    <Card className="w-full [--card-spacing:--spacing(5)] sm:[--card-spacing:--spacing(6)]">
+      <CardHeader className="gap-1.5">
+        <CardTitle className="text-xl sm:text-2xl">{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
+
       <CardContent>
         <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)} noValidate>
           {isSignUp && (
-            <div className="space-y-2">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First name</Label>
-                  <Input id="firstName" autoComplete="given-name" placeholder="Jane" {...form.register("firstName")} />
-                  <FieldError>{signUpErrors.firstName?.message}</FieldError>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last name</Label>
-                  <Input id="lastName" autoComplete="family-name" placeholder="Doe" {...form.register("lastName")} />
-                  <FieldError>{signUpErrors.lastName?.message}</FieldError>
-                </div>
-              </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormField id="firstName" label="First name" required error={signUpErrors.firstName?.message}>
+                <Input
+                  id="firstName"
+                  autoComplete="given-name"
+                  placeholder="Jane"
+                  {...form.register("firstName")}
+                  {...fieldAria("firstName", signUpErrors.firstName?.message)}
+                />
+              </FormField>
+
+              <FormField id="lastName" label="Last name" required error={signUpErrors.lastName?.message}>
+                <Input
+                  id="lastName"
+                  autoComplete="family-name"
+                  placeholder="Doe"
+                  {...form.register("lastName")}
+                  {...fieldAria("lastName", signUpErrors.lastName?.message)}
+                />
+              </FormField>
             </div>
           )}
-          <div className="space-y-2">
-            <Label htmlFor="email">Email address</Label>
-            <Input id="email" type="email" autoComplete="email" placeholder="you@example.com" {...form.register("email")} />
-            <FieldError>{form.formState.errors.email?.message}</FieldError>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <PasswordInput id="password" autoComplete={isSignUp ? "new-password" : "current-password"} placeholder="••••••••" {...form.register("password")} />
-            <FieldError>{form.formState.errors.password?.message}</FieldError>
-          </div>
+
+          <FormField id="email" label="Email address" required error={errors.email?.message}>
+            <Input
+              id="email"
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              {...form.register("email")}
+              {...fieldAria("email", errors.email?.message)}
+            />
+          </FormField>
+
+          <FormField
+            id="password"
+            label="Password"
+            required
+            error={errors.password?.message}
+            hint={isSignUp ? "Use at least 8 characters." : undefined}
+          >
+            <PasswordInput
+              id="password"
+              autoComplete={isSignUp ? "new-password" : "current-password"}
+              placeholder="Enter your password"
+              {...form.register("password")}
+              {...fieldAria("password", errors.password?.message)}
+            />
+          </FormField>
+
           {isSignUp && (
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm password</Label>
-              <PasswordInput id="confirmPassword" autoComplete="new-password" placeholder="••••••••" {...form.register("confirmPassword")} />
-              <FieldError>{signUpErrors.confirmPassword?.message}</FieldError>
-            </div>
+            <FormField id="confirmPassword" label="Confirm password" required error={signUpErrors.confirmPassword?.message}>
+              <PasswordInput
+                id="confirmPassword"
+                autoComplete="new-password"
+                placeholder="Re-enter your password"
+                {...form.register("confirmPassword")}
+                {...fieldAria("confirmPassword", signUpErrors.confirmPassword?.message)}
+              />
+            </FormField>
           )}
-          {submitError && <p className="text-sm text-destructive">Unable to create your account. Please try again.</p>}
-          <Button className="h-10 w-full" type="submit" disabled={activeMutation.isPending}>
-            {activeMutation.isPending ? <LoaderCircle className="animate-spin" /> : null}
-            {isSignUp ? "Create account" : "Sign in"}
+
+          {activeMutation.isError && <Alert>{submitError || fallbackError}</Alert>}
+
+          <Button className="w-full" size="xl" type="submit" disabled={activeMutation.isPending}>
+            {activeMutation.isPending ? <LoaderCircle aria-hidden="true" className="animate-spin" /> : null}
+            {activeMutation.isPending
+              ? isSignUp
+                ? "Creating account..."
+                : "Signing in..."
+              : isSignUp
+                ? "Create account"
+                : "Sign in"}
           </Button>
         </form>
+
         <p className="mt-6 text-center text-sm text-muted-foreground">
           {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
-          <Link className="font-medium text-primary underline-offset-4 hover:underline" href={isSignUp ? routes.auth.signIn : routes.auth.signUp}>
+          <Link
+            className="rounded font-medium text-foreground underline underline-offset-4 outline-none hover:text-foreground/80 focus-visible:ring-3 focus-visible:ring-ring/50"
+            href={isSignUp ? routes.auth.signIn : routes.auth.signUp}
+          >
             {isSignUp ? "Sign in" : "Create one"}
           </Link>
         </p>

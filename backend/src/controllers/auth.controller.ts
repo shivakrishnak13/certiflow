@@ -18,7 +18,10 @@ export class AuthController {
     }
 
     const user = await AuthService.createUser(email, password, name);
-    const token = getJWTToken({ id: user._id, email: user.email });
+    const token = getJWTToken({
+      id: user._id,
+      email: user.email,
+    });
 
     const userResponse = {
       id: user._id,
@@ -38,7 +41,10 @@ export class AuthController {
     const { email, password } = req.body;
 
     const user = await AuthService.loginUser(email, password);
-    const token = getJWTToken({ id: user._id, email: user.email });
+    const token = getJWTToken({
+      id: user._id,
+      email: user.email,
+    });
     const userResponse = {
       id: user._id,
       email: user.email,
@@ -50,6 +56,42 @@ export class AuthController {
     return SuccessResponse(res, status.OK, {
       message: "Success.",
       data: { user: userResponse },
+    });
+  }
+
+  static async me(req: Request, res: Response, next: NextFunction) {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return ErrorResponse(res, status.UNAUTHORIZED, {
+        message: "Authentication required.",
+      });
+    }
+
+    const user = await AuthService.getUserById(userId);
+    if (!user) {
+      return ErrorResponse(res, status.UNAUTHORIZED, {
+        message: "User account no longer exists.",
+      });
+    }
+
+    return SuccessResponse(res, status.OK, {
+      message: "Success.",
+      data: {
+        user: {
+          id: user._id,
+          email: user.email,
+          name: user.name,
+        },
+      },
+    });
+  }
+
+  static async logout(req: Request, res: Response, next: NextFunction) {
+    res.clearCookie(COOKIE_NAME.TOKEN, cookieOptions);
+
+    return SuccessResponse(res, status.OK, {
+      message: "Logged out successfully.",
     });
   }
 }

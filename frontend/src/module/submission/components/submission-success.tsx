@@ -18,7 +18,12 @@ function formatSubmittedAt(submittedAt: string) {
 
   return Number.isNaN(date.getTime())
     ? submittedAt
-    : date.toLocaleString();
+    : new Intl.DateTimeFormat("en-GB", {
+        dateStyle: "short",
+        timeStyle: "medium",
+        hour12: false,
+        timeZone: "UTC",
+      }).format(date);
 }
 
 export function SubmissionSuccess({

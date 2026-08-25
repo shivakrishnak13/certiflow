@@ -31,3 +31,14 @@ export type AuthResponseType = {
 export type AuthFormProps = {
   mode: "sign-in" | "sign-up";
 };
+
+export type MeResponse = {
+  message: string;
+  data: {
+    user: AuthUserType;
+  };
+};
+
+export type LogoutResponse = {
+  message: string;
+};

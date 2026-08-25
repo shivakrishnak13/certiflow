@@ -1,16 +1,15 @@
 "use client";
 
-import { isAxiosError } from "axios";
-import { LoaderCircle } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { routes } from "@/config/routes";
-import type { ErrorResponseType } from "@/lib/api";
 import { useApplicationDetails } from "@/module/applicant-details/hooks/useApplicationDetails";
-import type { ApplicationDocument, ApplicantDetails } from "@/module/applicant-details/types";
-import { usePreviewDocument } from "@/module/documents/hooks/usePreviewDocument";
+import { formatAddress, getApiError } from "@/module/review/utils";
+import { useSubmitApplication } from "@/module/submission/hooks/useSubmitApplication";
+import { LoaderCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useSyncExternalStore } from "react";
+import { ReviewDocument } from "@/module/review/components/review-document";
 
 type ReviewStepProps = {
   applicationId: string;
@@ -21,36 +20,7 @@ type ReviewItemProps = {
   value?: string;
 };
 
-type ReviewDocumentProps = {
-  applicationId: string;
-  label: string;
-  document?: ApplicationDocument;
-};
-
 const subscribe = () => () => undefined;
-
-function getApiError(error: unknown) {
-  return isAxiosError<ErrorResponseType>(error) ? error.response?.data.message : null;
-}
-
-function formatFileSize(size: number) {
-  if (size < 1024) return `${size} B`;
-  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
-
-  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function formatAddress(address?: ApplicantDetails["address"]) {
-  const parts = [
-    address?.line1,
-    address?.line2,
-    address?.city,
-    address?.state,
-    address?.postalCode,
-  ].filter(Boolean);
-
-  return parts.join(", ") || undefined;
-}
 
 function ReviewItem({ label, value }: ReviewItemProps) {
   return (
@@ -61,47 +31,11 @@ function ReviewItem({ label, value }: ReviewItemProps) {
   );
 }
 
-function ReviewDocument({ applicationId, label, document }: ReviewDocumentProps) {
-  const previewDocument = usePreviewDocument(applicationId);
-  const previewError = getApiError(previewDocument.error);
-
-  const handlePreview = () => {
-    if (!document) return;
-
-    previewDocument.mutate(document.id, {
-      onSuccess: ({ url }) => {
-        window.open(url, "_blank", "noopener,noreferrer");
-      },
-    });
-  };
-
-  return (
-    <div className="rounded-xl border p-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="font-medium">{label}</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {document ? `${document.originalName} · ${formatFileSize(document.size)}` : "Not uploaded"}
-          </p>
-        </div>
-        {document && (
-          <Button type="button" variant="outline" onClick={handlePreview} disabled={previewDocument.isPending}>
-            {previewDocument.isPending ? <LoaderCircle className="animate-spin" /> : null}
-            Preview
-          </Button>
-        )}
-      </div>
-      {previewDocument.isError && (
-        <p className="mt-3 text-sm text-destructive">{previewError || "Unable to preview the document. Please try again."}</p>
-      )}
-    </div>
-  );
-}
-
 export function ReviewStep({ applicationId }: ReviewStepProps) {
   const router = useRouter();
   const hasMounted = useSyncExternalStore(subscribe, () => true, () => false);
   const applicationQuery = useApplicationDetails(applicationId, hasMounted);
+  const submitApplication = useSubmitApplication(applicationId);
 
   if (!hasMounted || applicationQuery.isLoading) {
     return (
@@ -128,6 +62,22 @@ export function ReviewStep({ applicationId }: ReviewStepProps) {
   const documents = applicationQuery.data?.documents || [];
   const idProof = documents.find((document) => document.type === "ID_PROOF");
   const degreeCertificate = documents.find((document) => document.type === "DEGREE_CERTIFICATE");
+  const canSubmit = applicationQuery.data?.application.status === "DRAFT";
+  const submitError = getApiError(submitApplication.error);
+
+  const handleSubmit = () => {
+    submitApplication.mutate(undefined, {
+      onSuccess: (submission) => {
+        const searchParams = new URLSearchParams({
+          referenceNumber: submission.referenceNumber,
+          status: submission.status,
+          submittedAt: submission.submittedAt,
+        });
+
+        router.push(`${routes.applications.success(submission.applicationId)}?${searchParams.toString()}`);
+      },
+    });
+  };
 
   return (
     <div className="mx-auto w-full max-w-3xl space-y-4">
@@ -163,8 +113,14 @@ export function ReviewStep({ applicationId }: ReviewStepProps) {
         <Button type="button" variant="outline" onClick={() => router.push(routes.applications.documents(applicationId))}>
           Back
         </Button>
-        <Button type="button" disabled>Submit Application</Button>
+        <Button type="button" onClick={handleSubmit} disabled={!canSubmit || submitApplication.isPending}>
+          {submitApplication.isPending ? <LoaderCircle className="animate-spin" /> : null}
+          Submit Application
+        </Button>
       </div>
+      {submitApplication.isError && (
+        <p className="text-right text-sm text-destructive">{submitError || "Unable to submit the application. Please try again."}</p>
+      )}
     </div>
   );
 }

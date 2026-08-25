@@ -9,5 +9,6 @@ export const routes = {
     details: (id: string) => `/applications/${id}/details`,
     documents: (id: string) => `/applications/${id}/documents`,
     review: (id: string) => `/applications/${id}/review`,
+    success: (id: string) => `/applications/${id}/success`,
   },
 };

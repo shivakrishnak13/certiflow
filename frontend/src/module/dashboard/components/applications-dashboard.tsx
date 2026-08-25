@@ -5,6 +5,7 @@ import { AlertCircle, LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
+import { routes } from "@/config/routes";
 import type { ErrorResponseType } from "@/lib/api";
 import { ApplicationCard } from "@/module/dashboard/components/application-card";
 import { useApplications } from "@/module/dashboard/hooks/useApplications";
@@ -24,7 +25,7 @@ export function ApplicationsDashboard() {
   const handleCreateApplication = () => {
     useCreateApplicationMutation.mutate(undefined, {
       onSuccess: (application) => {
-        router.push(`/applications/${application._id}/details`);
+        router.push(routes.applications.details(application._id));
       },
     });
   };

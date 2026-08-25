@@ -1,4 +1,5 @@
 import axios, { type AxiosError } from "axios";
+import { routes } from "@/config/routes";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -27,7 +28,7 @@ apiClient.interceptors.response.use(
     const errorMessage = error?.response?.data?.message?.toLowerCase() || "";
 
     if (status === 401 && errorMessage.includes("invalid token")) {
-      window.location.href = "/signin";
+      window.location.href = routes.auth.signIn;
     }
 
     return Promise.reject(error);

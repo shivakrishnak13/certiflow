@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { routes } from "@/config/routes";
 import type { DashboardApplication } from "@/module/dashboard/types";
 
 type ApplicationCardProps = {
@@ -36,7 +37,7 @@ export function ApplicationCard({ application }: ApplicationCardProps) {
         <CardFooter className="flex-col items-stretch gap-2 sm:flex-row sm:justify-end">
           <Button
             className="w-full sm:w-auto"
-            onClick={() => router.push(`/applications/${application._id}`)}
+            onClick={() => router.push(routes.applications.details(application._id))}
           >
             {isDraft ? "Continue Application" : "View Application"}
           </Button>

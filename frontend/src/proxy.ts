@@ -1,8 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { routes } from "@/config/routes";
 import { COOKIES } from "@/types";
 
-const publicRoutes = ["/signin", "/signup"];
+const publicRoutes = [routes.auth.signIn, routes.auth.signUp];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -10,11 +11,11 @@ export function proxy(request: NextRequest) {
   const isPublicRoute = publicRoutes.includes(pathname);
 
   if (!isAuthenticated && !isPublicRoute) {
-    return NextResponse.redirect(new URL("/signin", request.url));
+    return NextResponse.redirect(new URL(routes.auth.signIn, request.url));
   }
 
   if (isAuthenticated && isPublicRoute) {
-    return NextResponse.redirect(new URL("/", request.url));
+    return NextResponse.redirect(new URL(routes.dashboard, request.url));
   }
 
   return NextResponse.next();

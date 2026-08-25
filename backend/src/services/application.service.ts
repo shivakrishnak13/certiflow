@@ -1,20 +1,21 @@
 import { Application } from "@/models/application";
 import { UserDocument } from "@/models/document";
+import { S3Service } from "@/services/s3.service";
 import { APPLICATION_STATUS } from "@/types/enums/enums";
 import { REQUIRED_DOCUMENT_TYPES } from "@/utils/constants";
 import { generateCertificatePdf } from "@/utils/helpers/certificate";
 import { getObjectId } from "@/utils/helpers/commonHelpers";
 import { generateReferenceNumber } from "@/utils/helpers/referenceNumber";
 import { ApplicationType, applicationSchema } from "@/utils/zod/application";
-import { S3Service } from "@/services/s3.service";
 
 export class ApplicationService {
   static async createApplication(userId: string) {
     return Application.create({ userId });
   }
-
   static async getApplications(userId: string) {
-    return Application.find({ userId });
+    return Application.find({ userId })
+      .sort({ createdAt: -1 })
+      .select("-certificate.s3Key");
   }
 
   static async getApplicationById(applicationId: string, userId: string) {
@@ -65,7 +66,12 @@ export class ApplicationService {
     const { documents, ...application } = applicationData;
 
     return {
-      application,
+      application: {
+        ...application,
+        degree: application.applicant?.degree,
+        specialization: application.applicant?.specialization,
+        currentStep: application.currentStep,
+      },
       documents,
     };
   }

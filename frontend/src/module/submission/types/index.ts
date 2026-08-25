@@ -9,3 +9,11 @@ export type SubmissionResponse = {
 };
 
 export type SubmissionDetails = SubmissionResponse["data"];
+
+export type CertificateDownloadResponse = {
+  message: string;
+  data: {
+    url: string;
+    fileName: string;
+  };
+};

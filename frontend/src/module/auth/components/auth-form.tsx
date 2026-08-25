@@ -21,7 +21,8 @@ import { PasswordInput } from "@/module/auth/components/password-input";
 export function AuthForm({ mode }: AuthFormProps) {
   const isSignUp = mode === "sign-up";
   const router = useRouter();
-  const { useLoginMutation, useRegisterMutation } = useAuth();
+  // The shared AuthGuard checks sessions on protected pages.
+  const { useLoginMutation, useRegisterMutation } = useAuth({ meEnabled: false });
   const form = useForm<SignUpValues | SignInValues>({
     resolver: zodResolver(isSignUp ? signUpSchema : signInSchema),
     defaultValues: isSignUp

@@ -25,7 +25,11 @@ apiClient.interceptors.response.use(
   },
   (error: AxiosError<ErrorResponseType>) => {
     const status = error?.response?.status;
-    if (status === 401) {
+    const isPublicRoute =
+      window.location.pathname === routes.auth.signIn ||
+      window.location.pathname === routes.auth.signUp;
+
+    if (status === 401 && !isPublicRoute) {
       window.location.href = routes.auth.signIn;
     }
 
